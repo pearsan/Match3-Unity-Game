@@ -6,6 +6,21 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    private static GameManager instance;
+
+    public static GameManager Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = FindObjectOfType<GameManager>();
+            }
+
+            return instance;
+        }
+    }
+
     public event Action<eStateGame> StateChangedAction = delegate { };
 
     public enum eLevelMode
@@ -38,9 +53,6 @@ public class GameManager : MonoBehaviour
 
     private GameSettings m_gameSettings;
 
-
-    private BoardController m_boardController;
-
     private UIMainManager m_uiMenu;
 
     private LevelCondition m_levelCondition;
@@ -63,7 +75,7 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (m_boardController != null) m_boardController.AutoUpdate(Time.deltaTime);
+        if (BoardController.Instance != null) BoardController.Instance.AutoUpdate(Time.deltaTime);
     }
 
 
@@ -83,13 +95,12 @@ public class GameManager : MonoBehaviour
 
     public void LoadLevel(eLevelMode mode)
     {
-        m_boardController = new GameObject("BoardController").AddComponent<BoardController>();
-        m_boardController.StartGame(this, m_gameSettings);
+        BoardController.Instance.StartGame(this, m_gameSettings);
 
         if (mode == eLevelMode.MOVES)
         {
             m_levelCondition = this.gameObject.AddComponent<LevelMoves>();
-            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMenu.GetLevelConditionView(), m_boardController);
+            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMenu.GetLevelConditionView(), BoardController.Instance);
         }
         else if (mode == eLevelMode.TIMER)
         {
@@ -109,17 +120,17 @@ public class GameManager : MonoBehaviour
 
     internal void ClearLevel()
     {
-        if (m_boardController)
+        if (BoardController.Instance)
         {
-            m_boardController.Clear();
-            Destroy(m_boardController.gameObject);
-            m_boardController = null;
+            BoardController.Instance.Clear();
+            //Destroy(BoardController.Instance.gameObject);
+            //m_boardController = null;
         }
     }
 
     private IEnumerator WaitBoardController()
     {
-        while (m_boardController.IsBusy)
+        while (BoardController.Instance.IsBusy)
         {
             yield return new WaitForEndOfFrame();
         }

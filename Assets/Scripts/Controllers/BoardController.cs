@@ -7,13 +7,28 @@ using UnityEngine;
 
 public class BoardController : MonoBehaviour
 {
+    private static BoardController instance;
+
+    public static BoardController Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = FindObjectOfType<BoardController>();
+            }
+
+            return instance;
+        }
+    }
+
     public event Action OnMoveEvent = delegate { };
 
     public bool IsBusy { get; private set; }
 
     private Board m_board;
 
-    private GameManager m_gameManager;
+    private bool play = false;
 
     private bool m_isDragging;
 
@@ -33,11 +48,12 @@ public class BoardController : MonoBehaviour
 
     public void StartGame(GameManager gameManager, GameSettings gameSettings)
     {
-        m_gameManager = gameManager;
+        play = true;
+        //GameManager = gameManager;
 
         m_gameSettings = gameSettings;
 
-        m_gameManager.StateChangedAction += OnGameStateChange;
+        GameManager.Instance.StateChangedAction += OnGameStateChange;
 
         m_cam = Camera.main;
 
@@ -57,6 +73,7 @@ public class BoardController : MonoBehaviour
         switch (state)
         {
             case GameManager.eStateGame.GAME_STARTED:
+                m_gameOver = false;
                 IsBusy = false;
                 break;
             case GameManager.eStateGame.PAUSE:
@@ -69,9 +86,11 @@ public class BoardController : MonoBehaviour
         }
     }
 
+    private RaycastHit2D[] raycastHit2Ds = new RaycastHit2D[1];
 
     public void AutoUpdate(float time)
     {
+        if (!play) return;
         if (m_gameOver) return;
         if (IsBusy) return;
 
@@ -85,13 +104,15 @@ public class BoardController : MonoBehaviour
             }
         }
 
+        bool pointerHit = Physics2D.RaycastNonAlloc(m_cam.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, raycastHit2Ds) > 0;
+        var pointerHitInfo = pointerHit ? raycastHit2Ds[0] : default;
+
         if (Input.GetMouseButtonDown(0))
         {
-            var hit = Physics2D.Raycast(m_cam.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-            if (hit.collider != null)
+            if (pointerHitInfo.collider != null)
             {
                 m_isDragging = true;
-                m_hitCollider = hit.collider;
+                m_hitCollider = pointerHitInfo.collider;
             }
         }
 
@@ -102,15 +123,15 @@ public class BoardController : MonoBehaviour
 
         if (Input.GetMouseButton(0) && m_isDragging)
         {
-            var hit = Physics2D.Raycast(m_cam.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-            if (hit.collider != null)
+         
+            if (pointerHitInfo.collider != null)
             {
-                if (m_hitCollider != null && m_hitCollider != hit.collider)
+                if (m_hitCollider != null && m_hitCollider != pointerHitInfo.collider)
                 {
                     StopHints();
 
                     Cell c1 = m_hitCollider.GetComponent<Cell>();
-                    Cell c2 = hit.collider.GetComponent<Cell>();
+                    Cell c2 = pointerHitInfo.collider.GetComponent<Cell>();
                     if (AreItemsNeighbor(c1, c2))
                     {
                         IsBusy = true;
@@ -281,6 +302,7 @@ public class BoardController : MonoBehaviour
 
     internal void Clear()
     {
+        play = false;
         m_board.Clear();
     }
 
