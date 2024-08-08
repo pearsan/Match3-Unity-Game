@@ -70,14 +70,14 @@ public class BoardController : MonoBehaviour
     }
 
 
-    public void Update()
+    public void AutoUpdate(float time)
     {
         if (m_gameOver) return;
         if (IsBusy) return;
 
         if (!m_hintIsShown)
         {
-            m_timeAfterFill += Time.deltaTime;
+            m_timeAfterFill += time;
             if (m_timeAfterFill > m_gameSettings.TimeForHint)
             {
                 m_timeAfterFill = 0f;
