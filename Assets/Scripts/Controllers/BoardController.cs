@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.U2D;
 
 public class BoardController : MonoBehaviour
 {
@@ -23,6 +24,8 @@ public class BoardController : MonoBehaviour
     }
 
     public event Action OnMoveEvent = delegate { };
+
+    public SkinSO skinSO;
 
     public bool IsBusy { get; private set; }
 

@@ -22,6 +22,11 @@ public class NormalItem : Item
         ItemType = type;
     }
 
+    protected override int GetType()
+    {
+        return (int) ItemType;
+    }
+
     protected override string GetPrefabName()
     {
         string prefabname = string.Empty;

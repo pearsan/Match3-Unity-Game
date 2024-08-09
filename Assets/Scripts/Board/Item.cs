@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
+using UnityEngine.UI;
 
 [Serializable]
 public class Item
@@ -24,9 +26,26 @@ public class Item
                 View = GameObject.Instantiate(prefab).transform;
             }
         }
+
+        int type = GetType();
+        if (type != -1) {
+            switch (BoardController.Instance.skinSO.skinType) {
+                case SkinType.Normal:
+                    View.GetComponent<SpriteRenderer>().sprite = BoardController.Instance.skinSO.spritesNormal[type];
+                    break;
+                case SkinType.Fish:
+                    View.GetComponent<SpriteRenderer>().sprite = BoardController.Instance.skinSO.spritesFish[type];
+                    break;
+            }
+        }
     }
 
     protected virtual string GetPrefabName() { return string.Empty; }
+
+    protected virtual int GetType()
+    {
+        return -1;
+    }
 
     public virtual void SetCell(Cell cell)
     {

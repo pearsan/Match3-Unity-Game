@@ -20,7 +20,6 @@ public class GameManager : MonoBehaviour
             return instance;
         }
     }
-
     public event Action<eStateGame> StateChangedAction = delegate { };
 
     public enum eLevelMode
