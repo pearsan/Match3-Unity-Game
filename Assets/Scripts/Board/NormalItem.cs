@@ -22,7 +22,7 @@ public class NormalItem : Item
         ItemType = type;
     }
 
-    protected override int GetType()
+    public override int GetItemType()
     {
         return (int) ItemType;
     }

@@ -27,7 +27,7 @@ public class Item
             }
         }
 
-        int type = GetType();
+        int type = GetItemType();
         if (type != -1) {
             switch (BoardController.Instance.skinSO.skinType) {
                 case SkinType.Normal:
@@ -42,7 +42,7 @@ public class Item
 
     protected virtual string GetPrefabName() { return string.Empty; }
 
-    protected virtual int GetType()
+    public virtual int GetItemType()
     {
         return -1;
     }

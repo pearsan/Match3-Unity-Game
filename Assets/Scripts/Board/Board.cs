@@ -135,6 +135,7 @@ public class Board
         }
     }
 
+    private Dictionary<int, int> m_itemTypeCounts = new Dictionary<int, int>();
 
     internal void FillGapsWithNewItems()
     {
@@ -145,9 +146,20 @@ public class Board
                 Cell cell = m_cells[x, y];
                 if (!cell.IsEmpty) continue;
 
+                Cell[] surroundingCells = GetSurroundingCells(x, y);
+
+                HashSet<int> surroundingItemTypes = new HashSet<int>();
+                foreach (var surroundingCell in surroundingCells)
+                {
+                    if (surroundingCell != null && !surroundingCell.IsEmpty)
+                    {
+                        surroundingItemTypes.Add(surroundingCell.Item.GetItemType());
+                    }
+                }
+
                 NormalItem item = new NormalItem();
 
-                item.SetType(Utils.GetRandomNormalType());
+                item.SetType(GetLeastCommonItemType(surroundingItemTypes));
                 item.SetView();
                 item.SetViewRoot(m_root);
 
@@ -155,6 +167,73 @@ public class Board
                 cell.ApplyItemPosition(true);
             }
         }
+    }
+
+    private Cell[] GetSurroundingCells(int x, int y)
+    {
+        return new[]
+        {
+        GetCell(x - 1, y),
+        GetCell(x, y - 1),
+        GetCell(x, y + 1),
+        GetCell(x + 1, y)
+    };
+    }
+
+    private Cell GetCell(int x, int y)
+    {
+        if (x < 0 || x >= boardSizeX || y < 0 || y >= boardSizeY)
+            return null;
+        return m_cells[x, y];
+    }
+
+    private NormalItem.eNormalType GetLeastCommonItemType(HashSet<int> surroundingItemTypes)
+    {
+
+        // Find the first item type that is not in the surrounding cells
+        foreach (var kvp in m_itemTypeCounts.OrderBy(x => x.Value))
+        {
+            int itemType = kvp.Key;
+            if (!surroundingItemTypes.Contains(itemType))
+            {
+                return (NormalItem.eNormalType)itemType;
+            }
+        }
+
+        // If all surrounding item types are the most common, choose a random new type
+        return Utils.GetRandomNormalType();
+    }
+    private void IncrementItemTypeCount(int type)
+    {
+        if (m_itemTypeCounts.ContainsKey(type))
+        {
+            m_itemTypeCounts[type]++;
+        }
+        else
+        {
+            m_itemTypeCounts[type] = 1;
+        }
+    }
+
+    internal void CalculateCurrentItemTypes()
+    {
+        // Clear the item type counts
+        m_itemTypeCounts.Clear();
+
+        // Iterate through the cells and count the item types
+        for (int x = 0; x < boardSizeX; x++)
+        {
+            for (int y = 0; y < boardSizeY; y++)
+            {
+                Cell cell = m_cells[x, y];
+                if (!cell.IsEmpty)
+                {
+                    IncrementItemTypeCount(cell.Item.GetItemType());
+                }
+            }
+        }
+
+        m_itemTypeCounts.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
     }
 
     internal void ExplodeAllItems()
